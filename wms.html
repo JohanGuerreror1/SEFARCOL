@@ -1,0 +1,393 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>WMS Alistamiento Mercancia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<style>
+body {
+    background-color: #FFFFFF;
+    font-family: monospace, Arial, sans-serif;
+    font-size: 11px;
+    margin: 0;
+    padding: 2px;
+}
+
+.rf-container {
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.rf-header {
+    background: #5b6e91;
+    color: #fff;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 5px;
+    margin-bottom: 6px;
+}
+
+.rf-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rf-table td {
+    padding: 4px;
+    text-align: center;
+    width: 33.33%;
+    vertical-align: top;
+}
+
+.rf-item {
+    display: block;
+    text-decoration: none;
+    color: #000;
+    padding: 2px;
+}
+
+.rf-item img {
+    width: 32px;
+    height: 32px;
+    display: block;
+    margin: 0 auto 2px auto;
+}
+
+.rf-item b {
+    font-size: 10px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rf-footer {
+    font-size: 9px;
+    color: #fff;
+    background: #5b6e91;
+    margin-top: 6px;
+    padding: 4px;
+    font-weight: bold;
+}
+
+/* Estilos para los formularios y submódulos simulados */
+.simulador-box {
+    background: #fff;
+    padding: 6px;
+    border: 1px solid #000;
+    text-align: left;
+    font-size: 11px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+.simulador-box select, .simulador-box input {
+    width: 100%;
+    padding: 3px;
+    font-size: 10px;
+    margin-top: 2px;
+    margin-bottom: 3px;
+    box-sizing: border-box;
+}
+.btn-rf {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 5px 8px;
+    font-size: 10px;
+    cursor: pointer;
+    width: 100%;
+}
+.fondo3 {
+    background: #000;
+    color: #fff;
+    padding: 4px;
+    font-size: 10px;
+    text-align: center;
+}
+.fondo4 {
+    background: #f4f4f4;
+    padding: 3px;
+    font-size: 10px;
+}
+.botonesmenu {
+    background: #f0f0f0;
+    border: 1px solid #000;
+    color: #000;
+    padding: 6px;
+    font-size: 10px;
+    font-family: monospace;
+    width: 100%;
+    cursor: pointer;
+    margin-bottom: 3px;
+}
+.botonesmenu:active {
+    background: #ccc;
+}
+.tabla1 {
+    width: 100%;
+    margin-bottom: 2px;
+}
+</style>
+
+<script language="JavaScript">
+function validarFiltroCompleto(form) {
+    if (form.ruta.value == '') {
+        alert('Debe digitar la ruta');
+        form.ruta.focus();
+        return false;
+    }
+    alert('¡Filtro de alistamiento aplicado con éxito!');
+    abrirSimulacion('alistamiento');
+    return false;
+}
+
+function validarAlistamiento(form) {
+    if (form.punto.value == "") {
+        alert("Debe digitar el punto");
+        form.punto.focus();
+        return false;
+    }
+    if (form.tipo_alistamiento.value == "") {
+        alert("Debe digitar el tipo de alistamiento");
+        form.tipo_alistamiento.focus();
+        return false;
+    }
+    abrirSimulacion('filtro_completo');
+    return false; 
+}
+
+const modulosWMS = {
+    alistamiento: {
+        titulo: "MANEJO ALISTAMIENTOS",
+        html: `
+            <table class="tabla1"><tr><td><input class="botonesmenu" type="button" value="Alistamientos" onclick="abrirSimulacion('form_alistamiento')"></td></tr></table>
+            <table class="tabla1"><tr><td><input class="botonesmenu" type="button" value="Empaques" onclick="alert('Empaques');"></td></tr></table>
+            <table class="tabla1"><tr><td><input class="botonesmenu" type="button" value="Empaque Ruta Confirmando" onclick="alert('Confirmando');"></td></tr></table>
+            <table class="tabla1"><tr><td><input class="botonesmenu" type="button" value="Empaque Ruta Lectura" onclick="alert('Lectura');"></td></tr></table>
+            <table class="tabla1"><tr><td><input class="botonesmenu" type="button" value="Cargar Contenedores Alistados" onclick="alert('Cargar');"></td></tr></table>
+            <table class="tabla1"><tr><td><input class="botonesmenu" type="button" value="Cargar Contenedores Usuario" onclick="alert('Usuario');"></td></tr></table>
+            <table class="tabla1"><tr><td><input class="botonesmenu" type="button" value="Descargar Contenedores" onclick="alert('Descargar');"></td></tr></table>
+            <table class="tabla1"><tr><td><input class="botonesmenu" type="button" value="Consulta Submuelle" onclick="alert('Submuelle');"></td></tr></table>
+            <table class="tabla1"><tr><td><input class="botonesmenu" type="button" style="background:#ddd;" value="Menu" onclick="volverAlMenu()"></td></tr></table>
+        `
+    },
+    form_alistamiento: {
+        titulo: "ALISTAMIENTO",
+        html: `
+            <form onsubmit="return validarAlistamiento(this)">
+                <table border="1" cellpadding="2" cellspacing="1" width="100%">
+                    <tr>
+                        <td class="fondo4" align="right" width="40%"><b> *Punto</b></td>
+                        <td class="fondo4">
+                            <select id="punto" name="punto">
+                                <option value="" selected>- Buscar - </option>
+                                <option value="CD">CD ~ SEFARCOL</option>
+                                <option value="CEDI">CEDI ~ XUE</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fondo4" align="right"><b>*T.Alista</b></td>
+                        <td class="fondo4">
+                            <select name="tipo_alistamiento">
+                                <option value="1">POR RUTAS</option>
+                                <option value="7" selected>RUTA AUTOMATICA</option>
+                                <option value="6">CON CAUSAL NO ALISTADOS</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fondo4" align="right"><b>*Restrictivo</b></td>
+                        <td class="fondo4">
+                            <select name="restrictivo">
+                                <option value="S">SI</option>
+                                <option value="N">NO</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+                <br>
+                <button class="btn-rf" type="submit">Continuar</button>
+            </form>
+            <br>
+            <button class="btn-rf" style="background:#666;" onclick="abrirSimulacion('alistamiento')">Volver</button>
+        `
+    },
+    filtro_completo: {
+        titulo: "FILTRO DE ALISTAMIENTO",
+        html: `
+            <form onsubmit="return validarFiltroCompleto(this)">
+                <div class="fondo3"><b>RUTA AUTOMATICA - RESTRICTIVO</b></div>
+                <table border="1" cellpadding="2" cellspacing="1" width="100%">
+                    <tr><td class="fondo4"><div align="right"><b>Ruta</b></div></td><td class="fondo4"><input type="text" name="ruta"></td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Articulo</b></div></td><td class="fondo4"><input type="text" name="articulo"></td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Salida</b></div></td><td class="fondo4"><input type="text" name="salida"></td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Proveed</b></div></td><td class="fondo4">
+                        <select name="proveedor"><option value="">--Todos--</option><option value="ALPHARMA">ALPHARMA</option><option value="RICHMOND">RICHMOND</option><option value="SELECTAPHARMA">SELECTA PHARMA</option><option value="SILIMED_COL">SILIMED</option><option value="INPHAPRO">INPHAPRO</option><option value="AULEN">AULEN</option><option value="NEXT">NEXT</option><option value="TERUMO_COL">TERUMO</option><option value="RAVEN">RAVEN</option><option value="MINDRAY">MINDRAY</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Bodega</b></div></td><td class="fondo4">
+                        <select name="bodega"><option value="">--Todas--</option><option value="ALMACEN">ALMACEN</option><option value="C_FRIO">CUARTO FRIO</option><option value="DEVOLUCI">DEVOLUCION</option><option value="MONT_2">MONTEVIDEO_2</option><option value="MPICKING">MONTEVIDEO PICKING</option><option value="PICKING">PICKING</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Sector</b></div></td><td class="fondo4">
+                        <select name="sector"><option value="">--Todos--</option><option value="ALMC">ALMACENAMIENTO</option><option value="FRIO">CUARTO FRIO</option><option value="SIN">SIN</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Area</b></div></td><td class="fondo4">
+                        <select name="area"><option value="">--Todos--</option><option value="SIN">SIN</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Grupo-L</b></div></td><td class="fondo4">
+                        <select name="grupolinea"><option value="">--Todos--</option><option value="ALPHA">ALPHARMA</option><option value="AULEN">AULEN</option><option value="INPHAPRO">INPHAPRO</option><option value="MINDRAY">MINDRAY</option><option value="NEXT">NEXT</option><option value="RAVEN">RAVEN</option><option value="RICHMOND">RICHMOND</option><option value="SELECTAPHARM">SELECTA</option><option value="SILIMED_COL">SILIMED</option><option value="TERUMO_COL">TERUMO</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Tipo-L</b></div></td><td class="fondo4">
+                        <select name="grupo-tipolinea"><option value="">--Todos--</option><option value="AULEN~SIN">SIN</option><option value="RICHMOND~RICHMOND">RICHMOND</option><option value="SELECTAPHARM~OPHTHA">OPHTHA</option><option value="SILIMED_COL~IMPLANTES_MA">IMPLANTES_MAMARIOS</option><option value="NEXT~FARMACEUTICO">FARMACEUTICOS</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Linea</b></div></td><td class="fondo4">
+                        <select name="grupo-tipo-linea"><option value="">--Todos--</option><option value="NEXT~FARMACEUTICO~TABLETAS">TABLETAS</option><option value="NEXT~FARMACEUTICO~VIAL">VIAL</option><option value="RAVEN~PRIMARIO~CIAL">COMERCIAL</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Sublinea</b></div></td><td class="fondo4">
+                        <select name="grupo-tipo-linea-sublinea"><option value="">--Todos--</option><option value="ALPHA~SIN~SIN~SIN">SIN</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Clas1</b></div></td><td class="fondo4">
+                        <select name="clasificador1"><option value="">--Todos--</option><option value="821353917">821353917</option><option value="ALPHARMA-129734">ALPHARMA-129734</option><option value="AULEN">AULEN</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Clas2</b></div></td><td class="fondo4">
+                        <select name="clasificador2"><option value="">--Todos--</option><option value="200030797">200030797</option><option value="ALPHARMA-129734">ALPHARMA-129734</option></select>
+                    </td></tr>
+                    <tr><td class="fondo4"><div align="right"><b>Bod Dest</b></div></td><td class="fondo4">
+                        <select name="bodega_destino"><option value="">--Todos--</option><option value="~SIN">-SIN BODEGA</option></select>
+                    </td></tr>
+                </table>
+                <br>
+                <button class="btn-rf" type="submit">Continuar</button>
+            </form>
+            <br>
+            <button class="btn-rf" style="background:#666;" onclick="abrirSimulacion('form_alistamiento')">Volver</button>
+        `
+    },
+    recepcion: {
+        titulo: "RECEPCION",
+        html: `<p><b>Escanear SSCC:</b></p><input type="text" placeholder="SSCC..."><button class="btn-rf" onclick="alert('¡Registrado!'); volverAlMenu();">Aceptar</button>`
+    },
+    almacenaje: {
+        titulo: "ALMACENAJE",
+        html: `<p><b>Ubicacion destino:</b></p><input type="text" placeholder="Ubicacion..."><button class="btn-rf" onclick="alert('¡Almacenado!'); volverAlMenu();">Aceptar</button>`
+    },
+    despacho: {
+        titulo: "DESPACHO",
+        html: `<p><b>Muelle:</b></p><select><option>Muelle 1</option></select><button class="btn-rf" onclick="alert('¡Procesado!'); volverAlMenu();">Cerrar</button>`
+    }
+};
+
+function abrirSimulacion(clave) {
+    const datos = modulosWMS[clave];
+    if (!datos) return;
+    document.getElementById('menu-principal').style.display = 'none';
+    const visor = document.getElementById('visor-simulador');
+    visor.style.display = 'block';
+    visor.innerHTML = `<div class="rf-header">${datos.titulo}</div><div class="simulador-box">${datos.html}</div>`;
+}
+
+function volverAlMenu() {
+    document.getElementById('visor-simulador').style.display = 'none';
+    document.getElementById('menu-principal').style.display = 'block';
+}
+</script>
+</head>
+
+<body>
+
+<div class="rf-container">
+
+  <!-- ================= MENÚ PRINCIPAL ================= -->
+  <div id="menu-principal">
+    <div class="rf-header">MENUWIRELESS: CAMPUS - suite</div>
+    
+    <table class="rf-table">
+      <tr>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="abrirSimulacion('recepcion')">
+            <img src="../imagenes/avisollegada.jpg" alt="Recepcion">
+            <b>Recepcion</b>
+          </a>
+        </td>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="abrirSimulacion('almacenaje')">
+            <img src="../imagenes/almacenarw.jpg" alt="Almacenaje">
+            <b>Almacenaje</b>
+          </a>
+        </td>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="abrirSimulacion('alistamiento')">
+            <img src="../imagenes/alistamiento.gif" alt="Alistar">
+            <b>Alistar</b>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="alert('Toma Inv')">
+            <img src="../imagenes/toma_inventario.gif" alt="Toma Inv">
+            <b>Toma Inv</b>
+          </a>
+        </td>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="abrirSimulacion('despacho')">
+            <img src="../imagenes/despachow.jpg" alt="Despacho">
+            <b>Despacho</b>
+          </a>
+        </td>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="alert('Consultas')">
+            <img src="../imagenes/consulta.jpg" alt="Consultas">
+            <b>Consultas</b>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="alert('Devolucion')">
+            <img src="../imagenes/devoluciones.jpg" alt="Devolucion">
+            <b>Devolucion</b>
+          </a>
+        </td>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="alert('SSCC')">
+            <img src="../imagenes/registroingresomercancia.jpg" alt="SSCC">
+            <b>SSCC</b>
+          </a>
+        </td>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="alert('Proveedor')">
+            <img src="../imagenes/elegir.jpg" alt="Elige Prov">
+            <b>Elige Prov</b>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="alert('Clave')">
+            <img src="../imagenes/sg2.jpg" alt="Act. Clave">
+            <b>Actualiza Clave</b>
+          </a>
+        </td>
+        <td>
+          <a class="rf-item" href="javascript:void(0);" onclick="alert('Salir')">
+            <img src="../imagenes/salirw.jpg" alt="Salir">
+            <b>Salir</b>
+          </a>
+        </td>
+        <td></td>
+      </tr>
+    </table>
+
+    <div class="rf-footer">Derechos SysTech Colombia SAS</div>
+  </div>
+
+  <!-- ================= VISOR SIMULADOR ================= -->
+  <div id="visor-simulador" style="display: none;"></div>
+
+</div>
+
+</body>
+</html>
